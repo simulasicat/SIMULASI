@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulasi CAT CPNS SKD</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;}
+  #app{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:680px;box-shadow:0 2px 16px rgba(0,0,0,0.08);}
+  .screen{display:none;}.screen.active{display:block;}
+  h1{font-size:24px;font-weight:600;margin-bottom:4px;color:#111;}
+  .sub{font-size:14px;color:#666;margin-bottom:1.5rem;}
+  .card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;margin-bottom:1rem;}
+  .info-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:8px;}
+  .info-row:last-child{margin-bottom:0;}
+  .badge{display:inline-block;font-size:11px;padding:2px 10px;border-radius:99px;font-weight:600;}
+  .twk{background:#dbeafe;color:#1d4ed8;}
+  .tiu{background:#dcfce7;color:#15803d;}
+  .tkp{background:#fef3c7;color:#92400e;}
+  .divider{border-top:1px solid #e5e5e5;margin:.85rem 0;padding-top:.85rem;font-size:13px;color:#888;}
+  .passing-box{background:#f9fafb;border-radius:8px;padding:.75rem 1rem;font-size:13px;color:#555;margin:.75rem 0;border:1px solid #e5e5e5;}
+  .btn{display:inline-block;padding:.6rem 1.25rem;border-radius:8px;font-size:14px;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#111;font-family:inherit;}
+  .btn:hover{background:#f3f4f6;}
+  .btn.pri{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+  .btn.pri:hover{background:#1e40af;}
+  .btn.sek{background:#fff;color:#111;border-color:#d1d5db;}
+  .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:1rem 0;}
+  .mode-btn{background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:1rem;cursor:pointer;text-align:left;transition:border-color .15s;}
+  .mode-btn:hover{border-color:#1d4ed8;background:#eff6ff;}
+  .mode-btn.sel{border-color:#1d4ed8;background:#eff6ff;}
+  .mode-icon{font-size:22px;margin-bottom:6px;}
+  .mode-title{font-size:14px;font-weight:600;color:#111;}
+  .mode-desc{font-size:12px;color:#666;margin-top:2px;}
+  .bar-bg{background:#e5e7eb;border-radius:99px;height:7px;margin-bottom:1rem;}
+  .bar{height:7px;border-radius:99px;background:#1d4ed8;transition:width .3s;}
+  .top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;}
+  .counter{font-size:13px;color:#666;}
+  .timer{font-size:15px;font-weight:600;color:#111;}
+  .timer.warn{color:#dc2626;}
+  .q-badge{display:inline-block;font-size:11px;padding:2px 10px;border-radius:99px;font-weight:600;margin-bottom:.75rem;}
+  .q-text{font-size:16px;font-weight:600;line-height:1.6;color:#111;margin-bottom:1rem;}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid #d1d5db;border-radius:8px;padding:.75rem 1rem;margin-bottom:.5rem;cursor:pointer;font-size:14px;color:#111;font-family:inherit;transition:background .15s,border-color .15s;}
+  .opt:hover{background:#f3f4f6;}
+  .opt.ok{border-color:#15803d;background:#dcfce7;color:#14532d;}
+  .opt.no{border-color:#dc2626;background:#fee2e2;color:#7f1d1d;}
+  .opt:disabled{cursor:default;}
+  .fb{border-radius:8px;padding:.75rem 1rem;margin-top:.75rem;font-size:13px;line-height:1.6;}
+  .fb.ok{background:#dcfce7;color:#15803d;border:1px solid #86efac;}
+  .fb.no{background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;}
+  .score-live{font-size:13px;color:#666;}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:1rem 0;}
+  .stat{background:#f9fafb;border-radius:8px;padding:.85rem;text-align:center;border:1px solid #e5e5e5;}
+  .stat-n{font-size:24px;font-weight:700;}
+  .stat-l{font-size:12px;color:#666;margin-top:3px;}
+  .sko-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:1rem 0;}
+  .sko-card{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:.85rem;text-align:center;}
+  .sko-n{font-size:22px;font-weight:700;}
+  .sko-l{font-size:11px;color:#666;margin-top:2px;}
+  .pass{color:#15803d;}.fail{color:#dc2626;}
+  .verdict{border-radius:8px;padding:.75rem 1rem;font-size:14px;font-weight:600;margin:.5rem 0;text-align:center;}
+  .review-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:.4rem;font-size:13px;}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:1.25rem;}
+  @media(max-width:480px){.mode-grid{grid-template-columns:1fr;}.stats,.sko-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Welcome -->
+  <div id="s-welcome" class="screen active">
+    <h1>Simulasi CAT CPNS</h1>
+    <p class="sub">Seleksi Kompetensi Dasar (SKD)</p>
+    <p style="font-size:14px;font-weight:600;margin-bottom:.75rem;color:#111;">Pilih Mode:</p>
+    <div class="mode-grid">
+      <div class="mode-btn sel" onclick="setMode(this,'full')" id="mode-full">
+        <div class="mode-icon">📋</div>
+        <div class="mode-title">Mode Lengkap</div>
+        <div class="mode-desc">30 soal · 30 menit</div>
+      </div>
+      <div class="mode-btn" onclick="setMode(this,'cepat')" id="mode-cepat">
+        <div class="mode-icon">⚡</div>
+        <div class="mode-title">Mode Cepat</div>
+        <div class="mode-desc">15 soal · 7 menit</div>
+      </div>
+    </div>
+    <div class="card">
+      <p style="font-size:14px;font-weight:600;margin-bottom:.75rem;">Komposisi Soal:</p>
+      <div class="info-row"><span><span class="badge twk">TWK</span> Wawasan Kebangsaan</span><span id="info-twk" style="color:#666;font-size:13px;">10 soal · 5 poin/benar</span></div>
+      <div class="info-row"><span><span class="badge tiu">TIU</span> Intelegensi Umum</span><span id="info-tiu" style="color:#666;font-size:13px;">10 soal · 5 poin/benar</span></div>
+      <div class="info-row"><span><span class="badge tkp">TKP</span> Karakteristik Pribadi</span><span id="info-tkp" style="color:#666;font-size:13px;">10 soal · 1–5 poin</span></div>
+      <div class="divider">Total: <span id="info-total">30 soal</span> · Waktu: <span id="info-waktu">30 menit</span> · Tidak ada pengurangan nilai</div>
+    </div>
+    <div class="passing-box"><b style="color:#111;">Nilai Ambang Batas SKD 2024:</b><br>TWK ≥ 65 &nbsp;·&nbsp; TIU ≥ 80 &nbsp;·&nbsp; TKP ≥ 166</div>
+    <button class="btn pri" onclick="startExam()" style="margin-top:.5rem;">Mulai Simulasi</button>
+  </div>
+
+  <!-- Exam -->
+  <div id="s-exam" class="screen">
+    <div class="top-row">
+      <span class="counter" id="q-counter"></span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:13px;color:#666;">Sisa:</span>
+        <span class="timer" id="timer"></span>
+      </div>
+    </div>
+    <div class="bar-bg"><div class="bar" id="bar"></div></div>
+    <div class="card">
+      <span class="q-badge" id="q-badge"></span>
+      <p class="q-text" id="q-text"></p>
+      <div id="opts"></div>
+      <div id="fb" class="fb" style="display:none;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
+      <span class="score-live" id="score-live"></span>
+      <button id="next-btn" class="btn pri" onclick="nextQ()" style="display:none;"></button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="s-result" class="screen">
+    <h1 id="r-title"></h1>
+    <p class="sub" id="r-sub"></p>
+    <div class="sko-grid">
+      <div class="sko-card"><div class="sko-n" id="r-twk"></div><div class="sko-l">TWK <span id="twk-st"></span></div></div>
+      <div class="sko-card"><div class="sko-n" id="r-tiu"></div><div class="sko-l">TIU <span id="tiu-st"></span></div></div>
+      <div class="sko-card"><div class="sko-n" id="r-tkp"></div><div class="sko-l">TKP <span id="tkp-st"></span></div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="r-total"></div><div class="stat-l">Total Nilai</div></div>
+      <div class="stat"><div class="stat-n" id="r-ok" style="color:#15803d;"></div><div class="stat-l">Benar</div></div>
+      <div class="stat"><div class="stat-n" id="r-no" style="color:#dc2626;"></div><div class="stat-l">Salah/Skip</div></div>
+    </div>
+    <div id="r-verdict" class="verdict"></div>
+    <div id="review" style="margin-top:1rem;"></div>
+    <div class="btn-row">
+      <button class="btn sek" onclick="reset()">← Ulangi</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const soalBank=[
+  // TWK (10)
+  {cat:'TWK',q:'Pancasila sebagai dasar negara Indonesia disahkan pada tanggal...',opts:['17 Agustus 1945','18 Agustus 1945','1 Juni 1945','22 Juni 1945'],a:1,e:'Pancasila disahkan oleh PPKI pada 18 Agustus 1945 bersama UUD 1945.',tkp:false},
+  {cat:'TWK',q:'Semboyan "Bhinneka Tunggal Ika" berasal dari kitab...',opts:['Negarakertagama','Sutasoma','Pararaton','Arjunawiwaha'],a:1,e:'Berasal dari Kitab Sutasoma karangan Mpu Tantular.',tkp:false},
+  {cat:'TWK',q:'Lembaga negara yang berwenang mengadili sengketa kewenangan antar lembaga negara adalah...',opts:['Mahkamah Agung','Mahkamah Konstitusi','Komisi Yudisial','DPR'],a:1,e:'Mahkamah Konstitusi berwenang mengadili sengketa kewenangan lembaga negara.',tkp:false},
+  {cat:'TWK',q:'Pasal UUD 1945 yang mengatur hak warga negara mendapat pendidikan adalah...',opts:['Pasal 27','Pasal 28C','Pasal 31','Pasal 34'],a:2,e:'Pasal 31 UUD 1945 menjamin hak setiap warga negara untuk mendapat pendidikan.',tkp:false},
+  {cat:'TWK',q:'Hak angket DPR adalah hak untuk...',opts:['Mengajukan pertanyaan','Menyelidiki kebijakan pemerintah','Menyatakan pendapat','Mengusulkan RUU'],a:1,e:'Hak angket adalah hak DPR untuk menyelidiki pelaksanaan UU/kebijakan pemerintah.',tkp:false},
+  {cat:'TWK',q:'Nilai yang terkandung dalam sila ke-3 Pancasila antara lain...',opts:['Keadilan bagi seluruh rakyat','Cinta tanah air dan bangsa','Musyawarah untuk mufakat','Pengakuan harkat manusia'],a:1,e:'Sila ke-3 mengandung nilai persatuan, cinta tanah air, dan semangat kebangsaan.',tkp:false},
+  {cat:'TWK',q:'NKRI berbentuk...',opts:['Negara Serikat','Negara Kesatuan','Negara Konfederasi','Negara Federal'],a:1,e:'Indonesia adalah Negara Kesatuan Republik Indonesia (NKRI) sesuai Pasal 1 UUD 1945.',tkp:false},
+  {cat:'TWK',q:'Empat Pilar Kebangsaan terdiri dari Pancasila, UUD 1945, NKRI, dan...',opts:['Sumpah Pemuda','Bhinneka Tunggal Ika','Proklamasi','Wawasan Nusantara'],a:1,e:'Empat Pilar Kebangsaan: Pancasila, UUD 1945, NKRI, dan Bhinneka Tunggal Ika.',tkp:false},
+  {cat:'TWK',q:'Wawasan Nusantara adalah cara pandang bangsa Indonesia tentang...',opts:['Pertahanan keamanan','Diri dan lingkungan dalam kehidupan berbangsa dan bernegara','Hubungan internasional','Pembangunan nasional'],a:1,e:'Wawasan Nusantara adalah cara pandang bangsa Indonesia terhadap diri dan lingkungannya.',tkp:false},
+  {cat:'TWK',q:'Konstitusi pertama Indonesia yang berlaku setelah kemerdekaan adalah...',opts:['Konstitusi RIS','UUD 1945','UUDS 1950','UUD 2002'],a:1,e:'UUD 1945 berlaku pertama kali sejak 18 Agustus 1945 setelah disahkan PPKI.',tkp:false},
+  // TIU (10)
+  {cat:'TIU',q:'Jika 5 pekerja menyelesaikan pekerjaan dalam 12 hari, berapa hari untuk 10 pekerja?',opts:['3 hari','6 hari','8 hari','10 hari'],a:1,e:'5 × 12 = 60 hari-orang. 60 ÷ 10 = 6 hari.',tkp:false},
+  {cat:'TIU',q:'Sinonim kata "konklusif" adalah...',opts:['Meragukan','Meyakinkan','Membingungkan','Bertentangan'],a:1,e:'Konklusif = meyakinkan, bersifat menentukan atau menjadi kesimpulan akhir.',tkp:false},
+  {cat:'TIU',q:'Lanjutkan deret: 3, 6, 12, 24, ___',opts:['36','42','48','56'],a:2,e:'Setiap angka dikali 2: 24 × 2 = 48.',tkp:false},
+  {cat:'TIU',q:'Antonim dari kata "eksplisit" adalah...',opts:['Jelas','Implisit','Tersurat','Nyata'],a:1,e:'Eksplisit = tersurat/jelas. Antonimnya implisit = tersirat.',tkp:false},
+  {cat:'TIU',q:'Sebuah persegi panjang panjang 12 cm dan lebar 8 cm. Luasnya adalah...',opts:['40 cm²','80 cm²','96 cm²','100 cm²'],a:2,e:'Luas = panjang × lebar = 12 × 8 = 96 cm².',tkp:false},
+  {cat:'TIU',q:'Jika A > B dan B > C, maka...',opts:['C > A','A > C','B = C','Tidak bisa ditentukan'],a:1,e:'Dari A > B dan B > C, secara logis A > C (sifat transitif).',tkp:false},
+  {cat:'TIU',q:'Rata-rata nilai 5 siswa adalah 75. Jika ditambah 1 siswa dengan nilai 85, rata-ratanya menjadi...',opts:['76,67','77,5','78,33','80'],a:0,e:'Total = 5×75+85 = 460. Rata-rata = 460÷6 ≈ 76,67.',tkp:false},
+  {cat:'TIU',q:'Analogi: Dokter : Rumah Sakit = Hakim : ___',opts:['Polisi','Pengadilan','Penjara','Kantor'],a:1,e:'Dokter bekerja di Rumah Sakit, Hakim bekerja di Pengadilan.',tkp:false},
+  {cat:'TIU',q:'Jika harga barang naik 20% menjadi Rp120.000, berapakah harga asalnya?',opts:['Rp96.000','Rp100.000','Rp104.000','Rp110.000'],a:1,e:'120.000 ÷ 1,2 = Rp100.000.',tkp:false},
+  {cat:'TIU',q:'Pola: 2, 5, 10, 17, 26, ___',opts:['35','36','37','38'],a:2,e:'Selisih: +3,+5,+7,+9,+11. Maka 26+11=37.',tkp:false},
+  // TKP (10)
+  {cat:'TKP',q:'Atasan memberi tugas mendadak saat Anda hampir selesai pekerjaan lain. Anda...',opts:['Menolak karena sudah ada tugas lain','Menerima dan diskusi prioritas dengan atasan','Kerjakan tugas baru, tinggalkan yang lama','Minta rekan kerjakan salah satu'],scores:[1,5,2,3],e:'Mendiskusikan prioritas (skor 5) menunjukkan profesionalisme dan komunikasi baik.',tkp:true},
+  {cat:'TKP',q:'Rekan kerja sering terlambat sehingga mengganggu kinerja tim. Anda...',opts:['Lapor langsung ke atasan','Tegur di depan tim','Bicara baik-baik secara pribadi','Biarkan saja'],scores:[3,2,5,1],e:'Berbicara secara pribadi (skor 5) adalah pendekatan paling profesional.',tkp:true},
+  {cat:'TKP',q:'Anda menemukan kesalahan laporan yang sudah ditandatangani atasan. Anda...',opts:['Diam saja','Lapor ke atasan dan tawarkan solusi','Perbaiki sendiri tanpa memberi tahu','Salahkan pembuat laporan'],scores:[1,5,3,1],e:'Melapor dan menawarkan solusi (skor 5) menunjukkan tanggung jawab dan integritas.',tkp:true},
+  {cat:'TKP',q:'Seorang warga datang marah karena pelayanan lambat. Anda...',opts:['Ikut emosi dan balas','Dengarkan, minta maaf, beri solusi','Abaikan dan suruh isi formulir','Panggil satpam'],scores:[1,5,2,1],e:'Mendengarkan dan memberikan solusi (skor 5) adalah pelayanan publik yang profesional.',tkp:true},
+  {cat:'TKP',q:'Anda mendapat kritik pedas dari rekan kerja. Anda...',opts:['Marah dan balas kritik','Terima dengan lapang dada dan introspeksi','Abaikan','Adukan ke atasan'],scores:[1,5,2,1],e:'Menerima kritik dan introspeksi (skor 5) menunjukkan kedewasaan profesional.',tkp:true},
+  {cat:'TKP',q:'Anda tidak setuju dengan keputusan atasan. Anda...',opts:['Protes keras di depan umum','Sampaikan pendapat secara sopan pada waktu tepat','Diam dan tidak melaksanakan','Mengadu ke atasan yang lebih tinggi'],scores:[1,5,1,2],e:'Menyampaikan pendapat secara sopan (skor 5) menunjukkan kematangan profesional.',tkp:true},
+  {cat:'TKP',q:'Diminta mengerjakan tugas yang bukan bidang keahlian Anda. Anda...',opts:['Menolak karena bukan bidang Anda','Terima dan belajar sambil bertanya kepada yang ahli','Kerjakan asal selesai','Serahkan ke orang lain tanpa penjelasan'],scores:[2,5,1,1],e:'Menerima dan berinisiatif belajar (skor 5) menunjukkan adaptabilitas.',tkp:true},
+  {cat:'TKP',q:'Ada program pemerintah yang menurut Anda kurang efektif. Sikap Anda...',opts:['Menolak terlibat','Laksanakan sambil beri masukan perbaikan','Kritik terbuka di media sosial','Laksanakan apa adanya tanpa peduli'],scores:[1,5,2,2],e:'Melaksanakan sambil memberi masukan (skor 5) menunjukkan loyalitas dan kepedulian.',tkp:true},
+  {cat:'TKP',q:'Rekan meminta bantuan di luar jam kerja untuk keperluan kantor. Anda...',opts:['Menolak karena sudah di luar jam kerja','Bantu jika memang mendesak dan penting','Selalu bantu kapanpun diminta','Pura-pura tidak bisa'],scores:[2,5,3,1],e:'Membantu jika mendesak (skor 5) menunjukkan keseimbangan dedikasi dan batasan sehat.',tkp:true},
+  {cat:'TKP',q:'Ketika menghadapi pekerjaan sangat banyak, Anda...',opts:['Panik dan minta bantuan semua orang','Buat daftar prioritas dan kerjakan satu per satu','Kerjakan semua sekaligus','Tunda sampai deadline'],scores:[2,5,3,1],e:'Membuat prioritas (skor 5) adalah manajemen waktu yang efektif.',tkp:true},
+];
+
+const TWK_PASS=65,TIU_PASS=80,TKP_PASS=166;
+let mode='full',qs=[],cur=0,log=[],timerInt=null,secLeft=0,answered=false,sTWK=0,sTIU=0,sTKP=0;
+
+function setMode(el,m){
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); mode=m;
+  if(m==='full'){
+    document.getElementById('info-twk').textContent='10 soal · 5 poin/benar';
+    document.getElementById('info-tiu').textContent='10 soal · 5 poin/benar';
+    document.getElementById('info-tkp').textContent='10 soal · 1–5 poin';
+    document.getElementById('info-total').textContent='30 soal';
+    document.getElementById('info-waktu').textContent='30 menit';
+  } else {
+    document.getElementById('info-twk').textContent='5 soal · 5 poin/benar';
+    document.getElementById('info-tiu').textContent='5 soal · 5 poin/benar';
+    document.getElementById('info-tkp').textContent='5 soal · 1–5 poin';
+    document.getElementById('info-total').textContent='15 soal';
+    document.getElementById('info-waktu').textContent='7 menit';
+  }
+}
+
+function startExam(){
+  const twkAll=soalBank.filter(s=>s.cat==='TWK').sort(()=>Math.random()-.5);
+  const tiuAll=soalBank.filter(s=>s.cat==='TIU').sort(()=>Math.random()-.5);
+  const tkpAll=soalBank.filter(s=>s.cat==='TKP').sort(()=>Math.random()-.5);
+  const n=mode==='full'?10:5;
+  qs=[...twkAll.slice(0,n),...tiuAll.slice(0,n),...tkpAll.slice(0,n)].sort(()=>Math.random()-.5);
+  cur=0;log=[];sTWK=0;sTIU=0;sTKP=0;answered=false;
+  secLeft=mode==='full'?1800:420;
+  show('s-exam');render();
+  timerInt=setInterval(tick,1000);
+}
+
+function tick(){
+  secLeft--;
+  if(secLeft<=0){clearInterval(timerInt);showResult();}
+  const m=Math.floor(secLeft/60),s=secLeft%60;
+  const el=document.getElementById('timer');
+  el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  el.className='timer'+(secLeft<=(mode==='full'?300:60)?' warn':'');
+}
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function render(){
+  answered=false;
+  const q=qs[cur],n=qs.length;
+  document.getElementById('q-counter').textContent='Soal '+(cur+1)+' dari '+n;
+  document.getElementById('bar').style.width=(cur/n*100)+'%';
+  const b=document.getElementById('q-badge');
+  b.textContent=q.cat;b.className='q-badge '+q.cat.toLowerCase();
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('fb').style.display='none';
+  document.getElementById('next-btn').style.display='none';
+  updateLive();
+  const c=document.getElementById('opts');c.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt';btn.textContent=String.fromCharCode(65+i)+'. '+o;
+    btn.onclick=()=>answer(i);c.appendChild(btn);
+  });
+}
+
+function updateLive(){
+  document.getElementById('score-live').textContent='TWK: '+sTWK+' · TIU: '+sTIU+' · TKP: '+sTKP;
+}
+
+function answer(idx){
+  if(answered)return;answered=true;
+  const q=qs[cur];
+  let gained=0,correct=false;
+  if(q.tkp){
+    gained=q.scores[idx];sTKP+=gained;correct=(gained===5);
+    log.push({cat:q.cat,ok:correct,gained,e:q.e,opts:q.opts,a:q.scores.indexOf(5)});
+  } else {
+    correct=(idx===q.a);gained=correct?5:0;
+    if(q.cat==='TWK')sTWK+=gained;else sTIU+=gained;
+    log.push({cat:q.cat,ok:correct,gained,e:q.e,opts:q.opts,a:q.a});
+  }
+  document.querySelectorAll('.opt').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(!q.tkp&&i===q.a)btn.classList.add('ok');
+    if(i===idx)btn.classList.add(correct?'ok':'no');
+  });
+  const fb=document.getElementById('fb');
+  fb.className='fb '+(correct?'ok':'no');
+  fb.textContent=(q.tkp?'Skor: '+gained+'/5. ':(correct?'Benar! ':'Kurang tepat. '))+q.e;
+  fb.style.display='block';
+  updateLive();
+  const nb=document.getElementById('next-btn');
+  nb.style.display='inline-block';
+  nb.textContent=cur<qs.length-1?'Soal Berikutnya →':'Lihat Hasil →';
+}
+
+function nextQ(){cur++;cur>=qs.length?showResult():render();}
+
+function showResult(){
+  clearInterval(timerInt);show('s-result');
+  const twkP=sTWK>=TWK_PASS,tiuP=sTIU>=TIU_PASS,tkpP=sTKP>=TKP_PASS,all=twkP&&tiuP&&tkpP;
+  const benar=log.filter(l=>l.ok).length;
+  document.getElementById('r-twk').textContent=sTWK;
+  document.getElementById('r-tiu').textContent=sTIU;
+  document.getElementById('r-tkp').textContent=sTKP;
+  document.getElementById('twk-st').innerHTML='<span class="'+(twkP?'pass':'fail')+'">'+(twkP?'✓':'✗')+'</span>';
+  document.getElementById('tiu-st').innerHTML='<span class="'+(tiuP?'pass':'fail')+'">'+(tiuP?'✓':'✗')+'</span>';
+  document.getElementById('tkp-st').innerHTML='<span class="'+(tkpP?'pass':'fail')+'">'+(tkpP?'✓':'✗')+'</span>';
+  document.getElementById('r-total').textContent=sTWK+sTIU+sTKP;
+  document.getElementById('r-ok').textContent=benar;
+  document.getElementById('r-no').textContent=log.length-benar;
+  document.getElementById('r-title').textContent=all?'Selamat, Lulus!':'Belum Memenuhi Passing Grade';
+  document.getElementById('r-sub').textContent=all?'Semua nilai memenuhi ambang batas SKD.':'Terus berlatih! Cek bagian yang perlu ditingkatkan.';
+  const v=document.getElementById('r-verdict');
+  v.style.background=all?'#dcfce7':'#fee2e2';
+  v.style.color=all?'#15803d':'#dc2626';
+  v.style.border='1px solid '+(all?'#86efac':'#fca5a5');
+  const gagal=[!twkP?'TWK':'',!tiuP?'TIU':'',!tkpP?'TKP':''].filter(Boolean).join(', ');
+  v.textContent=all?'LULUS SKD — Semua nilai memenuhi passing grade!':'BELUM LULUS — '+gagal+' belum memenuhi ambang batas.';
+  const rev=document.getElementById('review');
+  rev.innerHTML='<p style="font-size:13px;font-weight:600;margin:0 0 .5rem;color:#111;">Ringkasan per soal:</p>';
+  log.forEach((l,i)=>{
+    const d=document.createElement('div');
+    d.className='review-item';
+    const bg=l.cat==='TWK'?'#dbeafe':l.cat==='TIU'?'#dcfce7':'#fef3c7';
+    const cl=l.cat==='TWK'?'#1d4ed8':l.cat==='TIU'?'#15803d':'#92400e';
+    d.innerHTML='<span style="color:'+(l.ok?'#15803d':'#dc2626')+';font-weight:700;flex-shrink:0;">'+(l.ok?'✓':'✗')+'</span>'
+      +'<span style="font-size:10px;padding:1px 8px;border-radius:99px;background:'+bg+';color:'+cl+';font-weight:600;">'+l.cat+'</span>'
+      +'<span style="color:#555;">Soal '+(i+1)+' — '+(l.ok?'Benar':'Salah')+(l.cat==='TKP'?' ('+l.gained+'/5)':'')+'</span>';
+    rev.appendChild(d);
+  });
+}
+
+function reset(){clearInterval(timerInt);show('s-welcome');}
+</script>
+</body>
+</html>
